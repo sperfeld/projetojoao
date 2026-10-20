@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 
 typedef struct Item{
@@ -54,7 +55,7 @@ void criarItem(Item** cabeca, Mochila* mAtual){
     if(*cabeca == NULL){
         *cabeca = novo;
         mAtual->inicio = novo;
-        printf("peso %d/%d \n", calculaPeso(*mAtual), mAtual->pesoMax);
+        printf("\nItem adicionado.\n");
         return;
     }
     //se é menor que o primeiro
@@ -62,7 +63,7 @@ void criarItem(Item** cabeca, Mochila* mAtual){
         novo->proximo = *cabeca;
         (*cabeca)->anterior= novo;
         *cabeca = novo;
-        printf("Peso %d/%d \n", calculaPeso(*mAtual), mAtual->pesoMax);
+        printf("\nItem adicionado.\n");
         return;
     }
     Item* atual = *cabeca;
@@ -74,42 +75,117 @@ void criarItem(Item** cabeca, Mochila* mAtual){
     if(novo->peso >= atual->peso){
         atual->proximo = novo;
         novo->anterior = atual;
-        printf("Peso %d/%d \n", calculaPeso(*mAtual), mAtual->pesoMax);
+        printf("\nItem adicionado.\n");
         return;
     }
     novo->anterior = atual->anterior;
     novo->proximo = atual;
     atual->anterior->proximo = novo;
     atual->anterior = novo;
-    printf("Peso %d/%d \n", calculaPeso(*mAtual), mAtual->pesoMax);
-
+    printf("\nItem adicionado.\n");
     return;
 }
 
 
 
-void listarItem(Item* cabeca){
+void listarItem(Item* cabeca, Mochila* mAtual){
     Item* atual = cabeca;
+    int pesoAtual = 0;
+    pesoAtual = calculaPeso(*mAtual);
     while (atual != NULL){
-        printf("%s: %d <-> ", atual->nomeItem, atual->peso);
+        printf("%s: %d", atual->nomeItem, atual->peso);
         atual = atual->proximo;
+        if(atual != NULL){
+        printf(" <-> ");
+        }
     }
+    printf("\nPeso atual da mochila: %d", pesoAtual);
     printf("\n");
 }
+
+void excluirItem(Item* cabeca, Mochila* mAtual){
+    char nomeExcluir[50];
+    listarItem(cabeca, mAtual);
+    int condicao = 0;
+    Item* atual = cabeca;
+
+    printf("Qual item quer excluir: ");
+    scanf("%49s", nomeExcluir);
+    int numero = 0;
+    while (atual != NULL){
+            numero++;
+        if(strcmp(atual->nomeItem, nomeExcluir) == 0){
+            printf("\nNome: %s  /Peso: %d", atual->nomeItem, atual->peso);
+            printf("\nDeseja excluir esse item?");
+            scanf("%d", &condicao);
+
+            if(condicao == 1){
+                printf("Teste");
+
+                if(atual->anterior != NULL && atual->proximo != NULL){
+                    atual->anterior->proximo = atual->proximo;
+                    atual->proximo->anterior = atual->anterior;
+                } else
+
+                if(atual->anterior == NULL){
+                    atual->proximo->anterior = NULL;
+                    mAtual->inicio = atual->proximo;
+
+                }else
+
+                if(atual->proximo == NULL){
+                    atual->anterior->proximo = NULL;
+                    mAtual->fim = atual->anterior;
+                }
+
+                free(atual);
+                printf("Teste3");
+                printf("\nItem excluido.\n");
+                return;
+            }
+        }
+        atual = atual->proximo;
+    }
+    printf("\nNenhum item excluir\n");
+
+    return;
+}
+
 Mochila mochila;
 Item* Objeto;
-void main(){
-    mochila.pesoMax = 100;
-    mochila.pesoAtual = 0;
-    mochila.inicio = NULL;
-    mochila.fim = NULL;
 
-    criarItem(&Objeto, &mochila);
-    criarItem(&Objeto, &mochila);
-    criarItem(&Objeto, &mochila);
-    criarItem(&Objeto, &mochila);
-    criarItem(&Objeto, &mochila);
-    listarItem(Objeto);
-    criarItem(&Objeto, &mochila);
-    listarItem(Objeto);
+int indice = 0;
+
+
+void main(){
+    if(indice == 0){
+        mochila.pesoMax = 100;
+        mochila.pesoAtual = 0;
+        mochila.inicio = NULL;
+        mochila.fim = NULL;
+    }
+
+    printf("\nAdicionar Item: 1");
+    printf("\nExcluir Item: 2");
+    printf("\nLista Item: 3");
+    printf("\nSair: 0");
+    printf("\nDigite a opcao do menu: ");
+    scanf("%d", &indice);
+
+    switch(indice){
+        case 0:
+            break;
+        case 1:
+            criarItem(&Objeto, &mochila);
+            main();
+        case 2:
+            excluirItem(Objeto, &mochila);
+            main();
+        case 3:
+            listarItem(Objeto, &mochila);
+            main();
+    }
+
+
+
 }
