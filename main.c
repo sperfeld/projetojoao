@@ -42,11 +42,14 @@ void criarItem(Item** cabeca, Mochila* mAtual){
     Item* novo = (Item*) malloc(sizeof(Item));
 
     printf("Digite o nome do item: ");
-    scanf("%49s", novo->nomeItem);
+    getchar();
+    fgets(novo->nomeItem, 50, stdin);
+    novo->nomeItem[strcspn(novo->nomeItem, "\n")] = '\0';
     printf("Digite o peso do item: ");
     scanf("%d", &novo->peso);
     if (verificaEspaco(novo, mAtual)) {
         printf("Estourou o peso\n");
+        free(novo);
         return;
     };
     novo->proximo = NULL;
@@ -63,6 +66,9 @@ void criarItem(Item** cabeca, Mochila* mAtual){
         novo->proximo = *cabeca;
         (*cabeca)->anterior= novo;
         *cabeca = novo;
+        
+        mAtual->inicio = novo; // <--- ADICIONE ESTA LINHA AQUI
+        
         printf("\nItem adicionado.\n");
         return;
     }
@@ -75,6 +81,7 @@ void criarItem(Item** cabeca, Mochila* mAtual){
     if(novo->peso >= atual->peso){
         atual->proximo = novo;
         novo->anterior = atual;
+        mAtual->fim = novo;
         printf("\nItem adicionado.\n");
         return;
     }
@@ -89,68 +96,77 @@ void criarItem(Item** cabeca, Mochila* mAtual){
 
 
 void listarItem(Item* cabeca, Mochila* mAtual){
+    int numeroItem = 1;
     Item* atual = cabeca;
     int pesoAtual = 0;
     pesoAtual = calculaPeso(*mAtual);
+    printf("\nItens na mochila:\n\n");
     while (atual != NULL){
-        printf("%s: %d", atual->nomeItem, atual->peso);
+        printf("%d - %s - %d\n",numeroItem, atual->nomeItem, atual->peso);
         atual = atual->proximo;
         if(atual != NULL){
-        printf(" <-> ");
+            
         }
+        numeroItem++;
     }
     printf("\nPeso atual da mochila: %d", pesoAtual);
     printf("\n");
 }
 
-void excluirItem(Item* cabeca, Mochila* mAtual){
+void excluirItem(Item** cabeca, Mochila* mAtual) {
     char nomeExcluir[50];
-    listarItem(cabeca, mAtual);
+  
+    if (*cabeca == NULL) {
+        printf("\nA mochila ja esta vazia.\n");
+        return;
+    }
+
+    listarItem(*cabeca, mAtual);
     int condicao = 0;
-    Item* atual = cabeca;
+    Item* atual = *cabeca;
 
     printf("Qual item quer excluir: ");
-    scanf("%49s", nomeExcluir);
-    int numero = 0;
-    while (atual != NULL){
-            numero++;
-        if(strcmp(atual->nomeItem, nomeExcluir) == 0){
-            printf("\nNome: %s  /Peso: %d", atual->nomeItem, atual->peso);
-            printf("\nDeseja excluir esse item?");
+    getchar();
+    fgets(nomeExcluir, 50, stdin);
+    nomeExcluir[strcspn(nomeExcluir, "\n")] = '\0';
+
+    while (atual != NULL) {
+        if (strcmp(atual->nomeItem, nomeExcluir) == 0) {
+            printf("\nNome:%s/Peso: %d", atual->nomeItem, atual->peso);
+            printf("\nDeseja excluir esse item?\n1 - Sim\n2 - Não");
+             printf("\nDigite a opcao do menu: ");
             scanf("%d", &condicao);
 
-            if(condicao == 1){
-                printf("Teste");
-
-                if(atual->anterior != NULL && atual->proximo != NULL){
-                    atual->anterior->proximo = atual->proximo;
-                    atual->proximo->anterior = atual->anterior;
-                } else
-
-                if(atual->anterior == NULL){
+            if (condicao == 1) {
+                if (atual->anterior == NULL && atual->proximo == NULL) {
+                    *cabeca = NULL;
+                    mAtual->inicio = NULL;
+                    mAtual->fim = NULL;
+                } 
+                else if (atual->anterior == NULL) {
                     atual->proximo->anterior = NULL;
+                    *cabeca = atual->proximo;
                     mAtual->inicio = atual->proximo;
-
-                }else
-
-                if(atual->proximo == NULL){
+                } 
+                else if (atual->proximo == NULL) {
                     atual->anterior->proximo = NULL;
                     mAtual->fim = atual->anterior;
+                } 
+                else {
+                    atual->anterior->proximo = atual->proximo;
+                    atual->proximo->anterior = atual->anterior;
                 }
 
                 free(atual);
-                printf("Teste3");
-                printf("\nItem excluido.\n");
+                printf("\nItem excluido e peso removido.\n");
                 return;
             }
         }
         atual = atual->proximo;
     }
-    printf("\nNenhum item excluir\n");
-
-    return;
+    
+    printf("\nNenhum item foi excluido.\n");
 }
-
 Mochila mochila;
 Item* Objeto;
 
@@ -158,33 +174,42 @@ int indice = 0;
 
 
 void main(){
-    if(indice == 0){
-        mochila.pesoMax = 100;
-        mochila.pesoAtual = 0;
-        mochila.inicio = NULL;
-        mochila.fim = NULL;
-    }
+    
+    mochila.pesoMax = 100;
+    mochila.pesoAtual = 0;
+    mochila.inicio = NULL;
+    mochila.fim = NULL;
 
-    printf("\nAdicionar Item: 1");
-    printf("\nExcluir Item: 2");
-    printf("\nLista Item: 3");
-    printf("\nSair: 0");
-    printf("\nDigite a opcao do menu: ");
-    scanf("%d", &indice);
-
-    switch(indice){
-        case 0:
-            break;
-        case 1:
-            criarItem(&Objeto, &mochila);
-            main();
-        case 2:
-            excluirItem(Objeto, &mochila);
-            main();
-        case 3:
-            listarItem(Objeto, &mochila);
-            main();
-    }
+    do{
+        printf("\n0 - Fechar programa.");
+        printf("\n1 - Adicionar Item.");
+        printf("\n2 - Excluir Item.");
+        printf("\n3 - Lista Item.");
+        printf("\nDigite a opcao do menu: ");
+        scanf("%d", &indice);
+    
+        switch(indice){
+            case 0:
+                printf("\nO programa foi encerrado.\n");
+                
+                break;
+            case 1:
+                criarItem(&Objeto, &mochila);
+            
+                 break;
+            case 2:
+                excluirItem(&Objeto, &mochila);
+             
+                 break;
+            case 3:
+                listarItem(Objeto, &mochila);
+            
+                 break;
+            default:
+                printf("\nOpção não encontrada\n");
+                break;
+        }
+    }while(indice!=0);
 
 
 
